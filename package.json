@@ -1,0 +1,26 @@
+{
+  "name": "nsoap-express",
+  "version": "0.0.1",
+  "author": "Jeswin Kumar<jeswinpk@agilehead.com>",
+  "main": "dist/nsoap-express",
+  "scripts": {
+    "test": "./build.sh && mocha --require source-map-support/register dist/test/test.js",
+    "test-debug": "./build.sh && mocha --debug-brk --require source-map-support/register dist/test/test.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "babel-polyfill": "*"
+  },
+  "devDependencies": {
+    "babel-loader": "*",
+    "babel-plugin-transform-async-to-generator": "*",
+    "babel-plugin-transform-class-properties": "*",
+    "babel-plugin-transform-flow-strip-types": "*",
+    "babel-preset-es2015-without-regenerator": "*",
+    "babel-preset-stage-2": "*",
+    "mocha": "*",
+    "should": "*",
+    "source-map-loader": "*",
+    "source-map-support": "*"
+  }
+}
