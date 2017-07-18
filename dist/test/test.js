@@ -1,13 +1,30 @@
-import nsoap from "../nsoap-express";
-import should from "should";
-import express from "express";
-import request from "supertest";
+"use strict";
 
-const routes = {
+var _nsoapExpress = require("../nsoap-express");
+
+var _nsoapExpress2 = _interopRequireDefault(_nsoapExpress);
+
+var _should = require("should");
+
+var _should2 = _interopRequireDefault(_should);
+
+var _express = require("express");
+
+var _express2 = _interopRequireDefault(_express);
+
+var _supertest = require("supertest");
+
+var _supertest2 = _interopRequireDefault(_supertest);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+var routes = {
   // index() {
   //   return "Home page!";
   // },
-  about() {
+  about: function about() {
     return "NSOAP Test Suite";
   }
   // static: "NSOAP Static File",
@@ -66,17 +83,18 @@ const routes = {
   //     }
   //   }
   // }
+
 };
 
-const app = express();
-app.use(nsoap(routes));
+var app = (0, _express2.default)();
+app.use((0, _nsoapExpress2.default)(routes));
 //app.get("/about", (req, res) => res.send("Hello"))
 
-describe("NSOAP Express", () => {
-  it("Calls a parameter-less function", async () => {
-    const resp = await request(app).get("/about");
+describe("NSOAP Express", function () {
+  it("Calls a parameter-less function", _asyncToGenerator(function* () {
+    var resp = yield (0, _supertest2.default)(app).get("/about");
     resp.text.should.equal("NSOAP Test Suite");
-  });
+  }));
 
   // it("Gets the value of a property", async () => {
   //   const handler = getMockHandler();
@@ -206,3 +224,4 @@ describe("NSOAP Express", () => {
   //   handler.getResult().should.equal(30);
   // });
 });
+//# sourceMappingURL=test.js.map

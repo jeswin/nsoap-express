@@ -1,10 +1,12 @@
-import core from "nsoap";
+import nsoap from "nsoap";
 
 export default function(app, options = {}) {
-  const urlPrefix = options.urlPrefix || "/";
+  const _urlPrefix = options.urlPrefix || "/";
+  const urlPrefix = _urlPrefix.endsWith("/") ? _urlPrefix : `${urlPrefix}/`;
+
   return (req, res, next) => {
     const body = options.body ? options.body(req) : req.body;
-    const { path, url, query } = req;
+    const { path, url, query, headers } = req;
     if (path.startsWith(urlPrefix)) {
       const strippedPath = path.substring(urlPrefix.length);
       const dicts = [
@@ -12,7 +14,17 @@ export default function(app, options = {}) {
         options.parseQuery ? options.parseQuery(query) : query,
         options.parseBody ? options.parseBody(body) : body
       ];
-      nsoap(app, strippedPath, dicts, { index: options.index }, () => next());
+
+      nsoap(app, strippedPath, dicts, {
+        index: options.index || "index",
+        args: [req, res, {}]
+      }).then(
+        result =>
+          typeof result === "string"
+            ? res.status(200).send(result)
+            : res.status(200).json(result),
+        error => res.status(400).send(error)
+      );
     } else {
       next();
     }
