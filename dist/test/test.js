@@ -16,6 +16,10 @@ var _supertest = require("supertest");
 
 var _supertest2 = _interopRequireDefault(_supertest);
 
+var _bodyParser = require("body-parser");
+
+var _bodyParser2 = _interopRequireDefault(_bodyParser);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
@@ -88,7 +92,10 @@ var routes = {
 };
 
 var app = (0, _express2.default)();
+app.use(_bodyParser2.default.urlencoded({ extended: false }));
+app.use(_bodyParser2.default.json());
 app.use((0, _nsoapExpress2.default)(routes));
+
 //app.get("/about", (req, res) => res.send("Hello"))
 
 describe("NSOAP Express", function () {
@@ -122,37 +129,38 @@ describe("NSOAP Express", function () {
     var resp = yield (0, _supertest2.default)(app).get("/unary(x)?x=20");
     resp.body.should.equal(30);
   }));
-  //
-  // it("Calls a binary function with variables", async () => {
-  //   const handler = getMockHandler();
-  //   await nsoap(app, "binary(x,y)", [{ x: 10, y: 20 }], {}, handler.then);
-  //   handler.getResult().should.equal(30);
+
+  it("Calls a binary function with variables", _asyncToGenerator(function* () {
+    var resp = yield (0, _supertest2.default)(app).get("/binary(x,y)?x=10&y=20");
+    resp.body.should.equal(30);
+  }));
+
+  it("Calls a binary function with literals and variables", _asyncToGenerator(function* () {
+    var resp = yield (0, _supertest2.default)(app).get("/binary(x,20)?x=10");
+    resp.body.should.equal(30);
+  }));
+
+  it("Calls a binary function in a namespace", _asyncToGenerator(function* () {
+    var resp = yield (0, _supertest2.default)(app).get("/namespace.binary(10,20)");
+    resp.body.should.equal(30);
+  }));
+
+  it("Calls a binary function in a nested namespace", _asyncToGenerator(function* () {
+    var resp = yield (0, _supertest2.default)(app).get("/nested.namespace.binary(10,20)");
+    resp.body.should.equal(30);
+  }));
+
+  // it("Accepts stringified JSON arguments in querystring", async () => {
+  //   const data = JSON.stringify({ obj: { x: 10 } });
+  //   const resp = await request(app).post("/json(obj)").send(data);
+  //   resp.body.should.equal(30);
   // });
-  //
-  // it("Calls a binary function with literals and variables", async () => {
-  //   const handler = getMockHandler();
-  //   await nsoap(app, "binary(x,20)", [{ x: 10 }], {}, handler.then);
-  //   handler.getResult().should.equal(30);
-  // });
-  //
-  // it("Calls a binary function in a namespace", async () => {
-  //   const handler = getMockHandler();
-  //   await nsoap(app, "namespace.binary(10,20)", [], {}, handler.then);
-  //   handler.getResult().should.equal(30);
-  // });
-  //
-  // it("Calls a binary function in a nested namespace", async () => {
-  //   const handler = getMockHandler();
-  //   await nsoap(app, "nested.namespace.binary(10,20)", [], {}, handler.then);
-  //   handler.getResult().should.equal(30);
-  // });
-  //
-  // it("Accepts JSON arguments", async () => {
-  //   const handler = getMockHandler();
-  //   await nsoap(app, "json(obj)", [{ obj: { x: 10 } }], {}, handler.then);
-  //   handler.getResult().should.equal(30);
-  // });
-  //
+
+  it("Accepts JSON arguments in body", _asyncToGenerator(function* () {
+    var resp = yield (0, _supertest2.default)(app).post("/json(obj)").send({ obj: { x: 10 } });
+    resp.body.should.equal(30);
+  }));
+
   // it("Adds parenthesis if omitted", async () => {
   //   const handler = getMockHandler();
   //   await nsoap(app, "about", [], {}, handler.then);

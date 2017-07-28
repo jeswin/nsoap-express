@@ -2,6 +2,7 @@ import nsoap from "../nsoap-express";
 import should from "should";
 import express from "express";
 import request from "supertest";
+import bodyParser from "body-parser";
 
 const routes = {
   index() {
@@ -69,7 +70,10 @@ const routes = {
 };
 
 const app = express();
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 app.use(nsoap(routes));
+
 //app.get("/about", (req, res) => res.send("Hello"))
 
 describe("NSOAP Express", () => {
@@ -90,7 +94,7 @@ describe("NSOAP Express", () => {
 
   it("Throws an exception", async () => {
     const resp = await request(app).get("/throw(10)");
-    resp.status.should.equal(400)
+    resp.status.should.equal(400);
     resp.error.should.not.be.empty();
   });
 
@@ -103,37 +107,38 @@ describe("NSOAP Express", () => {
     const resp = await request(app).get("/unary(x)?x=20");
     resp.body.should.equal(30);
   });
-  //
-  // it("Calls a binary function with variables", async () => {
-  //   const handler = getMockHandler();
-  //   await nsoap(app, "binary(x,y)", [{ x: 10, y: 20 }], {}, handler.then);
-  //   handler.getResult().should.equal(30);
+
+  it("Calls a binary function with variables", async () => {
+    const resp = await request(app).get("/binary(x,y)?x=10&y=20");
+    resp.body.should.equal(30);
+  });
+
+  it("Calls a binary function with literals and variables", async () => {
+    const resp = await request(app).get("/binary(x,20)?x=10");
+    resp.body.should.equal(30);
+  });
+
+  it("Calls a binary function in a namespace", async () => {
+    const resp = await request(app).get("/namespace.binary(10,20)");
+    resp.body.should.equal(30);
+  });
+
+  it("Calls a binary function in a nested namespace", async () => {
+    const resp = await request(app).get("/nested.namespace.binary(10,20)");
+    resp.body.should.equal(30);
+  });
+
+  // it("Accepts stringified JSON arguments in querystring", async () => {
+  //   const data = JSON.stringify({ obj: { x: 10 } });
+  //   const resp = await request(app).post("/json(obj)").send(data);
+  //   resp.body.should.equal(30);
   // });
-  //
-  // it("Calls a binary function with literals and variables", async () => {
-  //   const handler = getMockHandler();
-  //   await nsoap(app, "binary(x,20)", [{ x: 10 }], {}, handler.then);
-  //   handler.getResult().should.equal(30);
-  // });
-  //
-  // it("Calls a binary function in a namespace", async () => {
-  //   const handler = getMockHandler();
-  //   await nsoap(app, "namespace.binary(10,20)", [], {}, handler.then);
-  //   handler.getResult().should.equal(30);
-  // });
-  //
-  // it("Calls a binary function in a nested namespace", async () => {
-  //   const handler = getMockHandler();
-  //   await nsoap(app, "nested.namespace.binary(10,20)", [], {}, handler.then);
-  //   handler.getResult().should.equal(30);
-  // });
-  //
-  // it("Accepts JSON arguments", async () => {
-  //   const handler = getMockHandler();
-  //   await nsoap(app, "json(obj)", [{ obj: { x: 10 } }], {}, handler.then);
-  //   handler.getResult().should.equal(30);
-  // });
-  //
+
+  it("Accepts JSON arguments in body", async () => {
+    const resp = await request(app).post("/json(obj)").send({ obj: { x: 10 } });
+    resp.body.should.equal(30);
+  });
+
   // it("Adds parenthesis if omitted", async () => {
   //   const handler = getMockHandler();
   //   await nsoap(app, "about", [], {}, handler.then);
