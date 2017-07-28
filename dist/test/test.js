@@ -21,69 +21,70 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 var routes = {
-  // index() {
-  //   return "Home page!";
-  // },
+  index: function index() {
+    return "Home page!";
+  },
   about: function about() {
     return "NSOAP Test Suite";
-  }
-  // static: "NSOAP Static File",
-  // unary(arg) {
-  //   return arg + 10;
-  // },
-  // binary(x, y) {
-  //   return x + y;
-  // },
-  // namespace: {
-  //   binary(x, y) {
-  //     return x + y;
-  //   }
-  // },
-  // nested: {
-  //   namespace: {
-  //     binary(x, y) {
-  //       return x + y;
-  //     }
-  //   }
-  // },
-  // json(input) {
-  //   return input.x + 20;
-  // },
-  // throw(a) {
-  //   throw new Error("Exception!");
-  // },
-  // chainAdder1(x) {
-  //   return {
-  //     chainAdder2(y) {
-  //       return x + y;
-  //     }
-  //   };
-  // },
-  // infer(_bool, _num, _str) {
-  //   return {
-  //     _bool,
-  //     _num,
-  //     _str
-  //   };
-  // },
-  // promiseToAdd(x, y) {
-  //   return Promise.resolve(x + y);
-  // },
-  // functionOnPromise(x, y) {
-  //   return Promise.resolve({
-  //     adder(z) {
-  //       return x + y + z;
-  //     }
-  //   });
-  // },
-  // defaultFunction(x, y) {
-  //   return {
-  //     index() {
-  //       return x + y
-  //     }
-  //   }
-  // }
+  },
 
+  static: "NSOAP Static File",
+  unary: function unary(arg) {
+    return arg + 10;
+  },
+  binary: function binary(x, y) {
+    return x + y;
+  },
+
+  namespace: {
+    binary: function binary(x, y) {
+      return x + y;
+    }
+  },
+  nested: {
+    namespace: {
+      binary: function binary(x, y) {
+        return x + y;
+      }
+    }
+  },
+  json: function json(input) {
+    return input.x + 20;
+  },
+  throw: function _throw(a) {
+    throw new Error("Exception!");
+  },
+  chainAdder1: function chainAdder1(x) {
+    return {
+      chainAdder2: function chainAdder2(y) {
+        return x + y;
+      }
+    };
+  },
+  infer: function infer(_bool, _num, _str) {
+    return {
+      _bool: _bool,
+      _num: _num,
+      _str: _str
+    };
+  },
+  promiseToAdd: function promiseToAdd(x, y) {
+    return Promise.resolve(x + y);
+  },
+  functionOnPromise: function functionOnPromise(x, y) {
+    return Promise.resolve({
+      adder: function adder(z) {
+        return x + y + z;
+      }
+    });
+  },
+  defaultFunction: function defaultFunction(x, y) {
+    return {
+      index: function index() {
+        return x + y;
+      }
+    };
+  }
 };
 
 var app = (0, _express2.default)();
@@ -96,40 +97,31 @@ describe("NSOAP Express", function () {
     resp.text.should.equal("NSOAP Test Suite");
   }));
 
-  // it("Gets the value of a property", async () => {
-  //   const handler = getMockHandler();
-  //   await nsoap(app, "static", [], {}, handler.then);
-  //   handler.getResult().should.equal("NSOAP Static File");
-  // });
-  //
-  // it("Calls a unary function", async () => {
-  //   const handler = getMockHandler();
-  //   await nsoap(app, "unary(10)", [], {}, handler.then);
-  //   handler.getResult().should.equal(20);
-  // });
-  //
-  // it("Throws an exception", async () => {
-  //   const handler = getMockHandler();
-  //   const result = nsoap(app, "throw(10)", [], {}, handler.then);
-  //   return result.then(
-  //     () => {
-  //       throw new Error("Exception was expected but not thrown.");
-  //     },
-  //     err => {}
-  //   );
-  // });
-  //
-  // it("Calls a binary function", async () => {
-  //   const handler = getMockHandler();
-  //   await nsoap(app, "binary(10,20)", [], {}, handler.then);
-  //   handler.getResult().should.equal(30);
-  // });
-  //
-  // it("Calls a unary function with variables", async () => {
-  //   const handler = getMockHandler();
-  //   await nsoap(app, "unary(x)", [{ x: 10 }], {}, handler.then);
-  //   handler.getResult().should.equal(20);
-  // });
+  it("Gets the value of a property", _asyncToGenerator(function* () {
+    var resp = yield (0, _supertest2.default)(app).get("/static");
+    resp.text.should.equal("NSOAP Static File");
+  }));
+
+  it("Calls a unary function", _asyncToGenerator(function* () {
+    var resp = yield (0, _supertest2.default)(app).get("/unary(10)");
+    resp.body.should.equal(20);
+  }));
+
+  it("Throws an exception", _asyncToGenerator(function* () {
+    var resp = yield (0, _supertest2.default)(app).get("/throw(10)");
+    resp.status.should.equal(400);
+    resp.error.should.not.be.empty();
+  }));
+
+  it("Calls a binary function", _asyncToGenerator(function* () {
+    var resp = yield (0, _supertest2.default)(app).get("/binary(10,20)");
+    resp.body.should.equal(30);
+  }));
+
+  it("Calls a unary function with variables", _asyncToGenerator(function* () {
+    var resp = yield (0, _supertest2.default)(app).get("/unary(x)?x=20");
+    resp.body.should.equal(30);
+  }));
   //
   // it("Calls a binary function with variables", async () => {
   //   const handler = getMockHandler();

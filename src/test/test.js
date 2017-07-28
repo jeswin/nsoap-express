@@ -4,68 +4,68 @@ import express from "express";
 import request from "supertest";
 
 const routes = {
-  // index() {
-  //   return "Home page!";
-  // },
+  index() {
+    return "Home page!";
+  },
   about() {
     return "NSOAP Test Suite";
+  },
+  static: "NSOAP Static File",
+  unary(arg) {
+    return arg + 10;
+  },
+  binary(x, y) {
+    return x + y;
+  },
+  namespace: {
+    binary(x, y) {
+      return x + y;
+    }
+  },
+  nested: {
+    namespace: {
+      binary(x, y) {
+        return x + y;
+      }
+    }
+  },
+  json(input) {
+    return input.x + 20;
+  },
+  throw(a) {
+    throw new Error("Exception!");
+  },
+  chainAdder1(x) {
+    return {
+      chainAdder2(y) {
+        return x + y;
+      }
+    };
+  },
+  infer(_bool, _num, _str) {
+    return {
+      _bool,
+      _num,
+      _str
+    };
+  },
+  promiseToAdd(x, y) {
+    return Promise.resolve(x + y);
+  },
+  functionOnPromise(x, y) {
+    return Promise.resolve({
+      adder(z) {
+        return x + y + z;
+      }
+    });
+  },
+  defaultFunction(x, y) {
+    return {
+      index() {
+        return x + y;
+      }
+    };
   }
-  // static: "NSOAP Static File",
-  // unary(arg) {
-  //   return arg + 10;
-  // },
-  // binary(x, y) {
-  //   return x + y;
-  // },
-  // namespace: {
-  //   binary(x, y) {
-  //     return x + y;
-  //   }
-  // },
-  // nested: {
-  //   namespace: {
-  //     binary(x, y) {
-  //       return x + y;
-  //     }
-  //   }
-  // },
-  // json(input) {
-  //   return input.x + 20;
-  // },
-  // throw(a) {
-  //   throw new Error("Exception!");
-  // },
-  // chainAdder1(x) {
-  //   return {
-  //     chainAdder2(y) {
-  //       return x + y;
-  //     }
-  //   };
-  // },
-  // infer(_bool, _num, _str) {
-  //   return {
-  //     _bool,
-  //     _num,
-  //     _str
-  //   };
-  // },
-  // promiseToAdd(x, y) {
-  //   return Promise.resolve(x + y);
-  // },
-  // functionOnPromise(x, y) {
-  //   return Promise.resolve({
-  //     adder(z) {
-  //       return x + y + z;
-  //     }
-  //   });
-  // },
-  // defaultFunction(x, y) {
-  //   return {
-  //     index() {
-  //       return x + y
-  //     }
-  //   }
-  // }
 };
 
 const app = express();
@@ -78,40 +78,31 @@ describe("NSOAP Express", () => {
     resp.text.should.equal("NSOAP Test Suite");
   });
 
-  // it("Gets the value of a property", async () => {
-  //   const handler = getMockHandler();
-  //   await nsoap(app, "static", [], {}, handler.then);
-  //   handler.getResult().should.equal("NSOAP Static File");
-  // });
-  //
-  // it("Calls a unary function", async () => {
-  //   const handler = getMockHandler();
-  //   await nsoap(app, "unary(10)", [], {}, handler.then);
-  //   handler.getResult().should.equal(20);
-  // });
-  //
-  // it("Throws an exception", async () => {
-  //   const handler = getMockHandler();
-  //   const result = nsoap(app, "throw(10)", [], {}, handler.then);
-  //   return result.then(
-  //     () => {
-  //       throw new Error("Exception was expected but not thrown.");
-  //     },
-  //     err => {}
-  //   );
-  // });
-  //
-  // it("Calls a binary function", async () => {
-  //   const handler = getMockHandler();
-  //   await nsoap(app, "binary(10,20)", [], {}, handler.then);
-  //   handler.getResult().should.equal(30);
-  // });
-  //
-  // it("Calls a unary function with variables", async () => {
-  //   const handler = getMockHandler();
-  //   await nsoap(app, "unary(x)", [{ x: 10 }], {}, handler.then);
-  //   handler.getResult().should.equal(20);
-  // });
+  it("Gets the value of a property", async () => {
+    const resp = await request(app).get("/static");
+    resp.text.should.equal("NSOAP Static File");
+  });
+
+  it("Calls a unary function", async () => {
+    const resp = await request(app).get("/unary(10)");
+    resp.body.should.equal(20);
+  });
+
+  it("Throws an exception", async () => {
+    const resp = await request(app).get("/throw(10)");
+    resp.status.should.equal(400)
+    resp.error.should.not.be.empty();
+  });
+
+  it("Calls a binary function", async () => {
+    const resp = await request(app).get("/binary(10,20)");
+    resp.body.should.equal(30);
+  });
+
+  it("Calls a unary function with variables", async () => {
+    const resp = await request(app).get("/unary(x)?x=20");
+    resp.body.should.equal(30);
+  });
   //
   // it("Calls a binary function with variables", async () => {
   //   const handler = getMockHandler();
