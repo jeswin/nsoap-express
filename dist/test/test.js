@@ -161,32 +161,27 @@ describe("NSOAP Express", function () {
     resp.body.should.equal(30);
   }));
 
-  // it("Adds parenthesis if omitted", async () => {
-  //   const handler = getMockHandler();
-  //   await nsoap(app, "about", [], {}, handler.then);
-  //   handler.getResult().should.equal("NSOAP Test Suite");
-  // });
-  //
-  // it("Calls the default function", async () => {
-  //   const handler = getMockHandler();
-  //   await nsoap(app, "", [], { index: "index" }, handler.then);
-  //   handler.getResult().should.equal("Home page!");
-  // });
-  //
-  // it("Calls chained functions", async () => {
-  //   const handler = getMockHandler();
-  //   await nsoap(app, "chainAdder1(10).chainAdder2(20)", [], {}, handler.then);
-  //   handler.getResult().should.equal(30);
-  // });
-  //
-  // it("Infers types", async () => {
-  //   const handler = getMockHandler();
-  //   await nsoap(app, "infer(true, 20, Hello)", [], {}, handler.then);
-  //   const result = handler.getResult();
-  //   (typeof result._bool).should.equal("boolean");
-  //   (typeof result._num).should.equal("number");
-  //   (typeof result._str).should.equal("string");
-  // });
+  it("Adds parenthesis if omitted", _asyncToGenerator(function* () {
+    var resp = yield (0, _supertest2.default)(app).get("/about");
+    resp.text.should.equal("NSOAP Test Suite");
+  }));
+
+  it("Calls the default function", _asyncToGenerator(function* () {
+    var resp = yield (0, _supertest2.default)(app).get("/");
+    resp.text.should.equal("Home page!");
+  }));
+
+  it("Calls chained functions", _asyncToGenerator(function* () {
+    var resp = yield (0, _supertest2.default)(app).get("/chainAdder1(10).chainAdder2(20)");
+    resp.body.should.equal(30);
+  }));
+
+  it("Infers types", _asyncToGenerator(function* () {
+    var resp = yield (0, _supertest2.default)(app).get("/infer(true, 20, Hello)");
+    resp.body._bool.should.equal(true);
+    resp.body._num.should.equal(20);
+    resp.body._str.should.equal("Hello");
+  }));
   //
   // it("Is Case-sensitive", async () => {
   //   const handler = getMockHandler();
