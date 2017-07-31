@@ -128,11 +128,11 @@ describe("NSOAP Express", () => {
     resp.body.should.equal(30);
   });
 
-  // it("Accepts stringified JSON arguments in querystring", async () => {
-  //   const data = JSON.stringify({ obj: { x: 10 } });
-  //   const resp = await request(app).post("/json(obj)").send(data);
-  //   resp.body.should.equal(30);
-  // });
+  it("Accepts stringified JSON arguments in querystring", async () => {
+    const obj = encodeURIComponent(JSON.stringify({ x: 10 }));
+    const resp = await request(app).get(`/json(obj)?obj=${obj}`);
+    resp.body.should.equal(30);
+  });
 
   it("Accepts JSON arguments in body", async () => {
     const resp = await request(app).post("/json(obj)").send({ obj: { x: 10 } });
@@ -161,40 +161,23 @@ describe("NSOAP Express", () => {
     resp.body._str.should.equal("Hello");
   });
 
-  // it("Is Case-sensitive", async () => {
-  //   const resp = await request(app).get("/unary(x)");
-  //   const handler = getMockHandler();
-  //   await nsoap(app, "unary(x)", [{ X: 100, x: 10 }], {}, handler.then);
-  //   handler.getResult().should.equal(20);
-  // });
-  //
-  // it("Resolves a Promise", async () => {
-  //   const handler = getMockHandler();
-  //   await nsoap(
-  //     app,
-  //     "promiseToAdd(x,y)",
-  //     [{ x: 10, y: 20 }],
-  //     {},
-  //     handler.then
-  //   );
-  //   handler.getResult().should.equal(30);
-  // });
-  //
-  // it("Calls a function on the resolved value of a Promise", async () => {
-  //   const handler = getMockHandler();
-  //   await nsoap(
-  //     app,
-  //     "functionOnPromise(x,y).adder(100)",
-  //     [{ x: 10, y: 20 }],
-  //     {},
-  //     handler.then
-  //   );
-  //   handler.getResult().should.equal(130);
-  // });
-  //
-  // it("Calls default function on object", async () => {
-  //   const handler = getMockHandler();
-  //   await nsoap(app, "defaultFunction(10,20)", [], { index: "index" }, handler.then);
-  //   handler.getResult().should.equal(30);
-  // });
+  it("Is Case-sensitive", async () => {
+    const resp = await request(app).post("/json(obj)").send({ obj: { X: 100, x: 10 } });
+    resp.body.should.equal(30);
+  });
+
+  it("Resolves a Promise", async () => {
+    const resp = await request(app).get("/promiseToAdd(10,20)");
+    resp.body.should.equal(30);
+  });
+
+  it("Calls a function on the resolved value of a Promise", async () => {
+    const resp = await request(app).get("/functionOnPromise(x,y).adder(100)?x=10&y=20");
+    resp.body.should.equal(130);
+  });
+
+  it("Calls default function on object", async () => {
+    const resp = await request(app).get("/defaultFunction(10,20)");
+    resp.body.should.equal(30);
+  });
 });
