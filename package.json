@@ -1,6 +1,6 @@
 {
   "name": "nsoap-express",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "Jeswin Kumar<jeswinpk@agilehead.com>",
   "main": "dist/nsoap-express",
   "scripts": {
