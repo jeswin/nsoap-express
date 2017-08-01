@@ -66,95 +66,127 @@ const routes = {
         return x + y;
       }
     };
+  },
+  funcWithContext(x, y, context) {
+    if (!context.isContext()) {
+      throw new Error("Invalid invocation of funcWithContext()");
+    }
+    return x + y;
+  },
+  funcWithPrependedContext(context, x, y) {
+    return x + y;
+  },
+  overrideResponse(context, x, y) {
+    const { res } = context;
+    context.handled = true;
+    res.status(200).send(`${x * y}`);
+    return x + y;
   }
 };
 
-const app = express();
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
-app.use(nsoap(routes));
-
-//app.get("/about", (req, res) => res.send("Hello"))
+function makeApp(options) {
+  const app = express();
+  app.use(bodyParser.urlencoded({ extended: false }));
+  app.use(bodyParser.json());
+  app.use(nsoap(routes, options));
+  return app;
+}
 
 describe("NSOAP Express", () => {
   it("Calls a parameter-less function", async () => {
+    const app = makeApp();
     const resp = await request(app).get("/about");
     resp.text.should.equal("NSOAP Test Suite");
   });
 
   it("Gets the value of a property", async () => {
+    const app = makeApp();
     const resp = await request(app).get("/static");
     resp.text.should.equal("NSOAP Static File");
   });
 
   it("Calls a unary function", async () => {
+    const app = makeApp();
     const resp = await request(app).get("/unary(10)");
     resp.body.should.equal(20);
   });
 
   it("Throws an exception", async () => {
+    const app = makeApp();
     const resp = await request(app).get("/throw(10)");
     resp.status.should.equal(400);
     resp.error.should.not.be.empty();
   });
 
   it("Calls a binary function", async () => {
+    const app = makeApp();
     const resp = await request(app).get("/binary(10,20)");
     resp.body.should.equal(30);
   });
 
   it("Calls a unary function with variables", async () => {
+    const app = makeApp();
     const resp = await request(app).get("/unary(x)?x=20");
     resp.body.should.equal(30);
   });
 
   it("Calls a binary function with variables", async () => {
+    const app = makeApp();
     const resp = await request(app).get("/binary(x,y)?x=10&y=20");
     resp.body.should.equal(30);
   });
 
   it("Calls a binary function with literals and variables", async () => {
+    const app = makeApp();
     const resp = await request(app).get("/binary(x,20)?x=10");
     resp.body.should.equal(30);
   });
 
   it("Calls a binary function in a namespace", async () => {
+    const app = makeApp();
     const resp = await request(app).get("/namespace.binary(10,20)");
     resp.body.should.equal(30);
   });
 
   it("Calls a binary function in a nested namespace", async () => {
+    const app = makeApp();
     const resp = await request(app).get("/nested.namespace.binary(10,20)");
     resp.body.should.equal(30);
   });
 
   it("Accepts stringified JSON arguments in querystring", async () => {
+    const app = makeApp();
     const obj = encodeURIComponent(JSON.stringify({ x: 10 }));
     const resp = await request(app).get(`/json(obj)?obj=${obj}`);
     resp.body.should.equal(30);
   });
 
   it("Accepts JSON arguments in body", async () => {
+    const app = makeApp();
     const resp = await request(app).post("/json(obj)").send({ obj: { x: 10 } });
     resp.body.should.equal(30);
   });
 
   it("Adds parenthesis if omitted", async () => {
+    const app = makeApp();
     const resp = await request(app).get("/about");
     resp.text.should.equal("NSOAP Test Suite");
   });
 
   it("Calls the default function", async () => {
+    const app = makeApp();
     const resp = await request(app).get("/");
     resp.text.should.equal("Home page!");
   });
 
   it("Calls chained functions", async () => {
+    const app = makeApp();
     const resp = await request(app).get("/chainAdder1(10).chainAdder2(20)");
     resp.body.should.equal(30);
   });
 
   it("Infers types", async () => {
+    const app = makeApp();
     const resp = await request(app).get("/infer(true, 20, Hello)");
     resp.body._bool.should.equal(true);
     resp.body._num.should.equal(20);
@@ -162,22 +194,48 @@ describe("NSOAP Express", () => {
   });
 
   it("Is Case-sensitive", async () => {
-    const resp = await request(app).post("/json(obj)").send({ obj: { X: 100, x: 10 } });
+    const app = makeApp();
+    const resp = await request(app)
+      .post("/json(obj)")
+      .send({ obj: { X: 100, x: 10 } });
     resp.body.should.equal(30);
   });
 
   it("Resolves a Promise", async () => {
+    const app = makeApp();
     const resp = await request(app).get("/promiseToAdd(10,20)");
     resp.body.should.equal(30);
   });
 
   it("Calls a function on the resolved value of a Promise", async () => {
-    const resp = await request(app).get("/functionOnPromise(x,y).adder(100)?x=10&y=20");
+    const app = makeApp();
+    const resp = await request(app).get(
+      "/functionOnPromise(x,y).adder(100)?x=10&y=20"
+    );
     resp.body.should.equal(130);
   });
 
   it("Calls default function on object", async () => {
+    const app = makeApp();
     const resp = await request(app).get("/defaultFunction(10,20)");
     resp.body.should.equal(30);
+  });
+
+  it("Passes context as an argument", async () => {
+    const app = makeApp();
+    const resp = await request(app).get("/funcWithContext(10,20)");
+    resp.body.should.equal(30);
+  });
+
+  it("Passes context as the first argument", async () => {
+    const app = makeApp({ contextAsFirstArgument: true });
+    const resp = await request(app).get("/funcWithPrependedContext(10,20)");
+    resp.body.should.equal(30);
+  });
+
+  it("Overrides request handling", async () => {
+    const app = makeApp({ contextAsFirstArgument: true });
+    const resp = await request(app).get("/overrideResponse(10,20)");
+    resp.text.should.equal("200");
   });
 });

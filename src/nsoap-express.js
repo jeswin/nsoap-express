@@ -38,15 +38,19 @@ export default function(app, options = {}) {
         options.parseBody ? options.parseBody(body) : parseBody(body)
       ];
 
+      const args = { req, res, isContext: () => true };
       nsoap(app, strippedPath, dicts, {
         index: options.index || "index",
-        args: [req, res, {}]
+        prependArgs: options.contextAsFirstArgument,
+        args: [args]
       }).then(
         result =>
-          typeof result === "string" && !options.alwaysUseJSON
-            ? res.status(200).send(result)
-            : res.status(200).json(result),
-        error => res.status(400).send(error)
+          !args.handled
+            ? typeof result === "string" && !options.alwaysUseJSON
+              ? res.status(200).send(result)
+              : res.status(200).json(result)
+            : undefined,
+        error => (!args.handled ? res.status(400).send(error) : undefined)
       );
     } else {
       next();
