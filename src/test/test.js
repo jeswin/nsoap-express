@@ -81,6 +81,9 @@ const routes = {
     context.handled = true;
     res.status(200).send(`${x * y}`);
     return x + y;
+  },
+  customContext(context, x, y) {
+    return context.z + x + y;
   }
 };
 
@@ -237,5 +240,14 @@ describe("NSOAP Express", () => {
     const app = makeApp({ contextAsFirstArgument: true });
     const resp = await request(app).get("/overrideResponse(10,20)");
     resp.text.should.equal("200");
+  });
+
+  it("Passes a custom context", async () => {
+    const app = makeApp({
+      contextAsFirstArgument: true,
+      createContext: args => ({ ...args, z: 10 })
+    });
+    const resp = await request(app).get("/customContext(10,20)");
+    resp.body.should.equal(40);
   });
 });
