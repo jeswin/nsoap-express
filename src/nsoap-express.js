@@ -46,15 +46,26 @@ export default function(app, options = {}) {
         index: options.index || "index",
         prependArgs: options.contextAsFirstArgument,
         args: [context]
-      }).then(
-        result =>
-          !context.handled
-            ? typeof result === "string" && !options.alwaysUseJSON
-              ? res.status(200).send(result)
-              : res.status(200).json(result)
-            : undefined,
-        error => (!context.handled ? res.status(400).send(error) : undefined)
-      );
+      })
+        .then(
+          result => {
+            if (!context.handled) {
+              if (typeof result === "string" && !options.alwaysUseJSON) {
+                res.status(200).send(result);
+              } else {
+                res.status(200).json(result);
+              }
+            }
+          },
+          error => {
+            if (!context.handled) {
+              res.status(400).send(error);
+            }
+          }
+        )
+        .then(() => {
+          next();
+        });
     } else {
       next();
     }
