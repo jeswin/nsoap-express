@@ -84,6 +84,9 @@ const routes = {
   },
   customContext(context, x, y) {
     return context.z + x + y;
+  },
+  rawHandler(x, y) {
+    return (req, res, next) => res.status(200).send(`${x * y}`);
   }
 };
 
@@ -249,5 +252,11 @@ describe("NSOAP Express", () => {
     });
     const resp = await request(app).get("/customContext(10,20)");
     resp.body.should.equal(40);
+  });
+
+  it("Calls a raw handler", async () => {
+    const app = makeApp();
+    const resp = await request(app).get("/rawHandler(10,20)");
+    resp.text.should.equal("200");
   });
 });

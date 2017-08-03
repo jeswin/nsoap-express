@@ -49,11 +49,15 @@ export default function(app, options = {}) {
       })
         .then(
           result => {
-            if (!context.handled) {
-              if (typeof result === "string" && !options.alwaysUseJSON) {
-                res.status(200).send(result);
-              } else {
-                res.status(200).json(result);
+            if (typeof result === "function") {
+              result.apply(undefined, [req, res, next]);
+            } else {
+              if (!context.handled) {
+                if (typeof result === "string" && !options.alwaysUseJSON) {
+                  res.status(200).send(result);
+                } else {
+                  res.status(200).json(result);
+                }
               }
             }
           },
