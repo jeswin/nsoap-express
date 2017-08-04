@@ -38,8 +38,10 @@ export default function(app, options = {}) {
         options.parseBody ? options.parseBody(body) : parseBody(body)
       ];
 
-      const createContext = options.createContext || x => x;
-      const context = createContext({ req, res, isContext: () => true })
+      const createContext = options.createContext || (x => x);
+      const context = options.appendContext
+        ? createContext({ req, res, isContext: () => true })
+        : [];
 
       nsoap(app, strippedPath, dicts, {
         index: options.index || "index",

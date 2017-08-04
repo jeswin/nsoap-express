@@ -228,25 +228,26 @@ describe("NSOAP Express", () => {
   });
 
   it("Passes context as an argument", async () => {
-    const app = makeApp();
+    const app = makeApp({ appendContext: true });
     const resp = await request(app).get("/funcWithContext(10,20)");
     resp.body.should.equal(30);
   });
 
   it("Passes context as the first argument", async () => {
-    const app = makeApp({ contextAsFirstArgument: true });
+    const app = makeApp({ appendContext: true, contextAsFirstArgument: true });
     const resp = await request(app).get("/funcWithPrependedContext(10,20)");
     resp.body.should.equal(30);
   });
 
   it("Overrides request handling", async () => {
-    const app = makeApp({ contextAsFirstArgument: true });
+    const app = makeApp({ appendContext: true, contextAsFirstArgument: true });
     const resp = await request(app).get("/overrideResponse(10,20)");
     resp.text.should.equal("200");
   });
 
   it("Passes a custom context", async () => {
     const app = makeApp({
+      appendContext: true,
       contextAsFirstArgument: true,
       createContext: args => ({ ...args, z: 10 })
     });
