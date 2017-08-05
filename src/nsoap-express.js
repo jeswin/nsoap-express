@@ -25,7 +25,7 @@ export default function(app, options = {}) {
   const _urlPrefix = options.urlPrefix || "/";
   const urlPrefix = _urlPrefix.endsWith("/") ? _urlPrefix : `${urlPrefix}/`;
 
-  return (req, res, next) => {
+  return (req, res) => {
     const body = options.body ? options.body(req) : req.body;
     const { path, url, query, headers } = req;
     if (path.startsWith(urlPrefix)) {
@@ -47,32 +47,26 @@ export default function(app, options = {}) {
         index: options.index || "index",
         prependArgs: options.contextAsFirstArgument,
         args: [context]
-      })
-        .then(
-          result => {
-            if (typeof result === "function") {
-              result.apply(undefined, [req, res, next]);
-            } else {
-              if (!context.handled) {
-                if (typeof result === "string" && !options.alwaysUseJSON) {
-                  res.status(200).send(result);
-                } else {
-                  res.status(200).json(result);
-                }
+      }).then(
+        result => {
+          if (typeof result === "function") {
+            result.apply(undefined, [req, res]);
+          } else {
+            if (!context.handled) {
+              if (typeof result === "string" && !options.alwaysUseJSON) {
+                res.status(200).send(result);
+              } else {
+                res.status(200).json(result);
               }
             }
-          },
-          error => {
-            if (!context.handled) {
-              res.status(400).send(error);
-            }
           }
-        )
-        .then(() => {
-          next();
-        });
-    } else {
-      next();
+        },
+        error => {
+          if (!context.handled) {
+            res.status(400).send(error);
+          }
+        }
+      );
     }
   };
 }
