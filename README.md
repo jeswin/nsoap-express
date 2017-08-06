@@ -377,6 +377,17 @@ const options = { urlPrefix: "/home" };
 app.use(nsoap(myApp, options));
 ```
 
+### alwaysUseJSON: boolean
+
+When the result of invoking a handler is a string, the router defaults to sending it as text instead of JSON.
+In this case, the result goes into response.text instead of response.body. The alwaysUseJSON setting can be used to force JSON responses even when the result is a string.
+
+```javascript
+//...
+const options = { alwaysUseJSON: true };
+app.use(nsoap(myApp, options));
+```
+
 ### appendContext: boolean
 
 Passes the ExpressJS context (request and response object) as a method parameter.
