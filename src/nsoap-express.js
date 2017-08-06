@@ -1,9 +1,9 @@
-import nsoap from "nsoap";
+import nsoap, { RoutingError } from "nsoap";
 
 const identifierRegex = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
 function parseHeaders(headers) {
-  return headers;
+  return headers || {};
 }
 
 function parseQuery(query) {
@@ -18,7 +18,11 @@ function parseQuery(query) {
 }
 
 function parseBody(body) {
-  return body;
+  return body || {};
+}
+
+function parseCookies(cookies) {
+  return cookies || {};
 }
 
 export default function(app, options = {}) {
@@ -26,7 +30,9 @@ export default function(app, options = {}) {
   const urlPrefix = _urlPrefix.endsWith("/") ? _urlPrefix : `${urlPrefix}/`;
 
   return (req, res) => {
-    const body = options.body ? options.body(req) : req.body;
+    const body = options.body ? options.getBody(req) : req.body;
+    const cookies = options.getCookies ? options.getCookies(req) : req.cookies;
+
     const { path, url, query, headers } = req;
     if (path.startsWith(urlPrefix)) {
       const strippedPath = path.substring(urlPrefix.length);
@@ -35,7 +41,10 @@ export default function(app, options = {}) {
           ? options.parseHeaders(headers)
           : parseHeaders(headers),
         options.parseQuery ? options.parseQuery(query) : parseQuery(query),
-        options.parseBody ? options.parseBody(body) : parseBody(body)
+        options.parseBody ? options.parseBody(body) : parseBody(body),
+        options.parseCookies
+          ? options.parseCookies(cookies)
+          : parseCookies(cookies)
       ];
 
       const createContext = options.createContext || (x => x);
@@ -49,7 +58,13 @@ export default function(app, options = {}) {
         args: [context]
       }).then(
         result => {
-          if (typeof result === "function") {
+          if (result instanceof RoutingError) {
+            if (result.type === "NOT_FOUND") {
+              res.status(404).send("Not found.");
+            } else {
+              res.status(500).send("Server error");
+            }
+          } else if (typeof result === "function") {
             result.apply(undefined, [req, res]);
           } else {
             if (!context.handled) {

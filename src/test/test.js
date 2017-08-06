@@ -18,6 +18,9 @@ const routes = {
   binary(x, y) {
     return x + y;
   },
+  divide(x, y) {
+    return x / y;
+  },
   namespace: {
     binary(x, y) {
       return x + y;
@@ -193,7 +196,7 @@ describe("NSOAP Express", () => {
 
   it("Infers types", async () => {
     const app = makeApp();
-    const resp = await request(app).get("/infer(true, 20, Hello)");
+    const resp = await request(app).get("/infer(true,20,Hello)");
     resp.body._bool.should.equal(true);
     resp.body._num.should.equal(20);
     resp.body._str.should.equal("Hello");
@@ -259,5 +262,12 @@ describe("NSOAP Express", () => {
     const app = makeApp();
     const resp = await request(app).get("/rawHandler(10,20)");
     resp.text.should.equal("200");
+  });
+
+  it("Returns 404 if not found", async () => {
+    const app = makeApp();
+    const resp = await request(app).get("/nonExistantFunction(10,20)");
+    resp.status.should.equal(404);
+    resp.text.should.equal("Not found.");
   });
 });
