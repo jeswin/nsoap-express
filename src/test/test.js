@@ -3,6 +3,7 @@ import should from "should";
 import express from "express";
 import request from "supertest";
 import bodyParser from "body-parser";
+import cookieParser from "cookie-parser";
 
 const routes = {
   index() {
@@ -20,6 +21,9 @@ const routes = {
   },
   divide(x, y) {
     return x / y;
+  },
+  tripletAdder(x,y,z) {
+    return x + y + z;
   },
   namespace: {
     binary(x, y) {
@@ -97,6 +101,7 @@ function makeApp(options) {
   const app = express();
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use(bodyParser.json());
+  app.use(cookieParser());
   app.use(nsoap(routes, options));
   return app;
 }
@@ -174,6 +179,33 @@ describe("NSOAP Express", () => {
     const app = makeApp();
     const resp = await request(app).post("/json(obj)").send({ obj: { x: 10 } });
     resp.body.should.equal(30);
+  });
+
+  it("Accepts arguments in headers", async () => {
+    const app = makeApp();
+    const resp = await request(app)
+      .post("/binary(x,y)")
+      .set("x", 10)
+      .set("y", 20);
+    resp.body.should.equal(30);
+  });
+
+  it("Accepts arguments in cookies", async () => {
+    const app = makeApp();
+    const resp = await request(app)
+      .post("/binary(x,y)")
+      .set('Cookie', ['x=10', 'y=20'])
+    resp.body.should.equal(30);
+  });
+
+  it("Obeys parameter precedence (header, query, body, cookies)", async () => {
+    const app = makeApp();
+    const resp = await request(app)
+      .post("/tripletAdder(x,y,z)?x=2&y=20")
+      .set("x", 1)
+      .set('Cookie', ['x=4', 'y=40', 'z=400'])
+      .send({ x: 3, y: 30, z: 300 })
+    resp.body.should.equal(321);
   });
 
   it("Adds parenthesis if omitted", async () => {

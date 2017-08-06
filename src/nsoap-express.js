@@ -2,19 +2,26 @@ import nsoap, { RoutingError } from "nsoap";
 
 const identifierRegex = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
 
+function parseDict(dict) {
+  return key => {
+    if (Object.prototype.hasOwnProperty.call(dict, key)) {
+      const val = dict[key];
+      return {
+        value:
+          val === "true" || val === "false"
+            ? val === "true"
+            : identifierRegex.test(val) ? `${val}` : JSON.parse(val)
+      };
+    }
+  };
+}
+
 function parseHeaders(headers) {
-  return headers || {};
+  return parseDict(headers);
 }
 
 function parseQuery(query) {
-  return Object.keys(query).reduce((acc, key) => {
-    const val = query[key];
-    acc[key] =
-      val === "true" || val === "false"
-        ? val === "true"
-        : identifierRegex.test(val) ? `${val}` : JSON.parse(val);
-    return acc;
-  }, {});
+  return parseDict(query);
 }
 
 function parseBody(body) {
@@ -22,7 +29,7 @@ function parseBody(body) {
 }
 
 function parseCookies(cookies) {
-  return cookies || {};
+  return parseDict(cookies);
 }
 
 export default function(app, options = {}) {
@@ -30,11 +37,14 @@ export default function(app, options = {}) {
   const urlPrefix = _urlPrefix.endsWith("/") ? _urlPrefix : `${urlPrefix}/`;
 
   return (req, res) => {
-    const body = options.body ? options.getBody(req) : req.body;
-    const cookies = options.getCookies ? options.getCookies(req) : req.cookies;
-
     const { path, url, query, headers } = req;
+
     if (path.startsWith(urlPrefix)) {
+      const body = options.body ? options.getBody(req) : req.body;
+      const cookies = options.getCookies
+        ? options.getCookies(req)
+        : req.cookies;
+
       const strippedPath = path.substring(urlPrefix.length);
       const dicts = [
         options.parseHeaders

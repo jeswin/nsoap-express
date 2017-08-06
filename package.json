@@ -10,7 +10,7 @@
   "license": "MIT",
   "dependencies": {
     "babel-polyfill": "*",
-    "nsoap": "0.0.5"
+    "nsoap": "^0.0.7"
   },
   "devDependencies": {
     "babel-loader": "*",
@@ -20,6 +20,7 @@
     "babel-preset-es2015-without-regenerator": "*",
     "babel-preset-stage-2": "*",
     "body-parser": "^1.17.2",
+    "cookie-parser": "^1.4.3",
     "express": "^4.15.3",
     "mocha": "*",
     "should": "*",
