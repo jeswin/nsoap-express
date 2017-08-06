@@ -8,9 +8,11 @@ function parseDict(dict) {
       const val = dict[key];
       return {
         value:
-          val === "true" || val === "false"
-            ? val === "true"
-            : identifierRegex.test(val) ? `${val}` : JSON.parse(val)
+          typeof val !== "string"
+            ? val
+            : val === "true" || val === "false"
+              ? val === "true"
+              : identifierRegex.test(val) ? `${val}` : JSON.parse(val)
       };
     }
   };
