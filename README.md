@@ -114,13 +114,13 @@ const myApp = {
 
 ## On the server, use GET, POST, PUT whatever.
 
-Arguments passed via the query string need to be URI encoded. Arguments passed via HTTP method body are parsed with JSON.parse.
+NSOAP urls are callable via all HTTP methods. It is strongly suggested that methods are not restricted this way. However, if you do want to enforce HTTP methods on certain handlers, read the section Raw Request and Response Handling.
 
 ```bash
-# Using POST with JSON content type
+# Using GET
+curl "http://www.example.com/addTwoNumbers(10,20)"
+# Using POST
 curl -H "Content-Type: application/json" -X POST -d '{"x":10,"y":20}' "http://www.example.com/addTwoNumbers(x,y)"
-# Using POST with url encoding.
-curl --data "x=10&y=20" "http://www.example.com/addTwoNumbers(x,y)"
 ```
 
 ## Organizing code with Namespaces
