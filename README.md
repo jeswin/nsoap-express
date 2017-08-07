@@ -79,13 +79,6 @@ curl "http://www.example.com/search(x)?x=%22thomas%20jacob%22"
 
 You may pass full JSON objects via parameter variables.
 
-```bash
-# x = { "title": "bring milk", "assignee": "me" })
-# encodeURIComponent(x)
-curl "http://www.example.com/findTodo(x)?x=
-%7B%20%22title%22%3A%20%22bring%20milk%22%2C%20%22assignee%22%3A%20%22me%22%20%7D"
-```
-
 ## Returning a response
 
 Handlers can return the value to be sent to the client. The router will take care of sending it as an HTTP Response.
