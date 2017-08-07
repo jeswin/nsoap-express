@@ -193,6 +193,23 @@ const options = { index: "myDefaultFunc" }
 app.use(nsoap(myApp, options));
 ```
 
+## Promises
+
+If the handler returns a Promise, the resolved value of the Promise is sent back as the response.
+
+```javascript
+const myApp = {
+  greeting() {
+    return Promise.resolve("Hello");
+  }
+}
+```
+
+```bash
+# Returns Hello
+curl "http://www.example.com/"
+```
+
 ## Function Chaining
 
 Chained function calls work the same way you expect it to work. The following url invokes the getAccounts function on the result of the getCustomer function. If the function returns a Promise (or a Future), the Promise is resolved and the subsequent function or object is accessed on the resolved value.
