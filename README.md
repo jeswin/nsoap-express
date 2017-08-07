@@ -12,6 +12,12 @@ Choose your framework
   <li><a href="/react.html">React JS</a></li>
 </ul>
 
+## Installation
+
+```bash
+npm install nsoap-express
+```
+
 ## Initializing your App: The App Object
 
 The App Object (myApp in the following example) contains the "routes" the application will respond to.
