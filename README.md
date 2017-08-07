@@ -42,7 +42,7 @@ app.use(nsoap(myApp));
 
 ## Invoking Functions
 
-Invoke a function that adds two numbers looks like plain JavaScript.
+Invoking a function that adds two numbers looks like plain JavaScript.
 
 ```bash
 curl "http://www.example.com/addTwoNumbers(10,20)"
