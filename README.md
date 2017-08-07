@@ -88,11 +88,11 @@ curl "http://www.example.com/findTodo(x)?x=
 
 ## Returning a response
 
-Applications are expected to return the response to be sent to the client.
+Handlers can return the value to be sent to the client. The router will take care of sending it as an HTTP Response.
 
 ```javascript
 const myApp = {
-  addTwoNumbers(x, y, { request, response }) {
+  addTwoNumbers(x, y) {
     return x + y;
   },
 }
@@ -102,7 +102,7 @@ In case there is an error, throw an exception.
 
 ```javascript
 const myApp = {
-  addTwoNumbers(x, y, { request, response }) {
+  addTwoNumbers(x, y) {
     if (typeof  x === "undefined" || typeof y === "undefined") {
       throw new Error("Invalid value.")
     } else {
