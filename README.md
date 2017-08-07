@@ -9,7 +9,7 @@ Choose your framework
 <ul class="selector">
   <li><a href="/">Express JS</a></li>
   <li><a href="/koa.html">Koa JS</a></li>
-  <li><a href="/react.html">React JS</a></li>
+  <li>React JS (Coming soon...)</li>
 </ul>
 
 ## Installation
