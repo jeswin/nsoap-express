@@ -77,8 +77,6 @@ If the argument is a string and it contains spaces or other characters, you will
 curl "http://www.example.com/search(x)?x=%22thomas%20jacob%22"
 ```
 
-You may pass full JSON objects via parameter variables.
-
 ## Returning a response
 
 Handlers can return the value to be sent to the client. The router will take care of sending it as an HTTP Response.
