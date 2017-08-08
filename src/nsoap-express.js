@@ -34,7 +34,7 @@ function parseCookies(cookies) {
   return parseDict(cookies);
 }
 
-function createResponseHandler(options, { req, res, next }) {
+function createResponseStreamHandler(options, { req, res, next }) {
   return options.onResponseStream
     ? {
         onRoutingError(result) {
@@ -61,25 +61,7 @@ function createResponseHandler(options, { req, res, next }) {
             next(error);
           }
         }
-      : {
-          onRoutingError(result) {
-            if (result.type === "NOT_FOUND") {
-              res.status(404).send("Not found.");
-            } else {
-              res.status(500).send("Server error.");
-            }
-          },
-          onResult(result) {
-            if (typeof result === "string" && !options.alwaysUseJSON) {
-              res.status(200).send(result);
-            } else {
-              res.status(200).json(result);
-            }
-          },
-          onError(error) {
-            res.status(400).send(error);
-          }
-        };
+      : undefined;
 }
 
 export default function(app, options = {}) {
@@ -112,28 +94,28 @@ export default function(app, options = {}) {
         ? createContext({ req, res, isContext: () => true })
         : [];
 
-      let isHeader = true;
+      let isStreaming = false;
       const streamResponseHandler = options.onResponseStream
         ? val => {
-            if (isHeader) {
-              options.onResponseStreamHeader(req, res, next)(val, isHeader);
-              isHeader = false;
+            if (!isStreaming) {
+              options.onResponseStreamHeader(req, res, next)(val);
+              isStreaming = true;
             } else {
-              options.onResponseStream(req, res, next)(val, isHeader);
+              options.onResponseStream(req, res, next)(val);
             }
           }
         : options.streamResponse
           ? val => {
-              if (isHeader) {
+              if (!isStreaming) {
                 res.writeHead(200, val);
-                isHeader = false;
+                isStreaming = true;
               } else {
                 res.write(val);
               }
             }
           : undefined;
 
-      const handler = createResponseHandler(options, { req, res, next });
+      const responseStreamHandler = createResponseStreamHandler(options, { req, res, next });
 
       nsoap(app, strippedPath, dicts, {
         index: options.index || "index",
@@ -145,16 +127,36 @@ export default function(app, options = {}) {
           if (typeof result === "function") {
             result.apply(undefined, [req, res]);
           } else if (result instanceof RoutingError) {
-            handler.onRoutingError(result);
+            if (isStreaming) {
+              responseStreamHandler.onRoutingError(result);
+            } else {
+              if (result.type === "NOT_FOUND") {
+                res.status(404).send("Not found.");
+              } else {
+                res.status(500).send("Server error.");
+              }
+            }
           } else {
             if (!context.handled) {
-              handler.onResult(result);
+              if (isStreaming) {
+                responseStreamHandler.onResult(result);
+              } else {
+                if (typeof result === "string" && !options.alwaysUseJSON) {
+                  res.status(200).send(result);
+                } else {
+                  res.status(200).json(result);
+                }
+              }
             }
           }
         },
         error => {
           if (!context.handled) {
-            handler.onError(error);
+            if (isStreaming) {
+              responseStreamHandler.onError(error);
+            } else {
+              res.status(400).send(error);
+            }
           }
         }
       );

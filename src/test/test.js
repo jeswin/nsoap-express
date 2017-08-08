@@ -96,6 +96,14 @@ const routes = {
     yield x;
     return y;
   },
+  *generatorFunctionWithError(x, y) {
+    yield {
+      "Content-Type": "text/plain",
+      "Transfer-Encoding": "chunked"
+    };
+    yield "HELLO_";
+    throw new Error("Did not work.");
+  },
   funcWithContext(x, y, context) {
     if (!context.isContext()) {
       throw new Error("Invalid invocation of funcWithContext()");
@@ -118,6 +126,31 @@ const routes = {
     return (req, res, next) => res.status(200).send(`${x * y}`);
   }
 };
+
+function getResponseStreamHandlers() {
+  function onResponseStreamHeader(req, res) {
+    return val => res.writeHead(200, val);
+  }
+
+  function onResponseStream(req, res) {
+    return val => res.write(val);
+  }
+
+  function onResponseStreamEnd(req, res) {
+    return val => res.end(val);
+  }
+
+  function onResponseStreamError(req, res, next) {
+    return error => next(error);
+  }
+
+  return {
+    onResponseStreamHeader,
+    onResponseStream,
+    onResponseStreamEnd,
+    onResponseStreamError
+  };
+}
 
 function makeApp(options) {
   const app = express();
@@ -338,23 +371,28 @@ describe("NSOAP Express", () => {
   });
 
   it("Streams with Stream Response Handler", async () => {
-    function onResponseStreamHeader(req, res) {
-      return val => res.writeHead(200, val);
-    }
-
-    function onResponseStream(req, res) {
-      return val => res.write(val);
-    }
-
-    function onResponseStreamEnd(req, res) {
-      return val => res.end(val);
-    }
-    const app = makeApp({
-      onResponseStreamHeader,
-      onResponseStream,
-      onResponseStreamEnd
-    });
+    const streamHandlers = getResponseStreamHandlers();
+    const app = makeApp(streamHandlers);
     const resp = await request(app).get("/generatorFunction(WORKS_,WELL)");
     resp.text.should.equal("HELLO_WORLD_THIS_WORKS_WELL");
+  });
+
+  it("Calls non-streaming functions even when streaming is configured", async () => {
+    const streamHandlers = getResponseStreamHandlers();
+    const app = makeApp({
+      ...streamHandlers,
+      streamResponse: true
+    });
+    const resp = await request(app).get("/unary(x)?x=20");
+    resp.body.should.equal(30);
+  });
+
+  it("Handles streaming errors", async () => {
+    const streamHandlers = getResponseStreamHandlers();
+    const app = makeApp(streamHandlers);
+    const resp = await request(app).get(
+      "/generatorFunctionWithError(WORKS_,WELL)"
+    );
+    resp.text.should.equal("HELLO_");
   });
 });
