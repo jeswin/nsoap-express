@@ -636,5 +636,3 @@ const options = {
 app.use(nsoap(myApp, options));
 ```
 
-
-
