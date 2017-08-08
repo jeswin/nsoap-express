@@ -9,16 +9,16 @@
   },
   "license": "MIT",
   "dependencies": {
-    "babel-polyfill": "*",
     "nsoap": "^0.0.10"
   },
   "devDependencies": {
     "babel-loader": "*",
+    "babel-polyfill": "^6.23.0",
     "babel-plugin-transform-async-to-generator": "*",
-    "babel-plugin-transform-class-properties": "*",
-    "babel-plugin-transform-flow-strip-types": "*",
-    "babel-preset-es2015-without-regenerator": "*",
-    "babel-preset-stage-2": "*",
+    "babel-preset-es2015-without-regenerator": "^1.0.1",
+    "babel-preset-es2016": "^6.24.1",
+    "babel-preset-es2017": "^6.24.1",
+    "babel-preset-stage-3": "^6.24.1",
     "body-parser": "^1.17.2",
     "cookie-parser": "^1.4.3",
     "express": "^4.15.3",
