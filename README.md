@@ -242,7 +242,6 @@ If the return value is an object, and it contains a property with the same name 
 That may sound confusing, let's look at an example. Assume that the default function name is unchanged (ie, "index"). The addTwoNumbers() function returns an object with a property named "index" which is a function. Since it matches the default function name, it is invoked.
 
 ```javascript
-// The app
 const myApp = {
   addTwoNumbers(x, y) {
     return {
@@ -262,7 +261,6 @@ curl "http://www.example.com/addTwoNumbers(10,20)"
 This allows for more powerful chained functions. The following app can now respond to the urls /getCustomer(1) and /getCustomer(1).getTotalPurchases()
 
 ```javascript
-// The app
 const myApp = {
   getCustomer(id) {
     return {
@@ -363,7 +361,7 @@ const myApp = {
 }
 ```
 
-## Reading and Writing Streams
+## Reading and writing Request and Response streams
 
 To read or write streams, you can use Raw Request and Response Handling.
 
@@ -380,6 +378,32 @@ const myApp = {
       }, 1000);
     }
   },
+}
+```
+
+## Streaming responses with Generator Functions
+
+Response chunks are sent every time a yield is called. 
+
+```javascript
+const myApp = {
+  *streamingGreeting() {
+    yield "HELLO";
+    yield "WORLD";
+    return "!!!";
+  }
+}
+```
+
+You can also use asynchronous generator functions.
+
+```javascript
+const myApp = {
+  async *streamingGreeting() {
+    yield await Promise.resolve("HELLO");
+    yield await Promise.resolve("WORLD");
+    return "!!!";
+  }
 }
 ```
 
