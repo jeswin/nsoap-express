@@ -61,3 +61,5 @@ yarn.lock
 .env
 
 dist/
+
+.vscode/

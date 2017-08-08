@@ -383,11 +383,15 @@ const myApp = {
 
 ## Streaming responses with Generator Functions
 
-Response chunks are sent every time a yield is called. 
+Response chunks are sent every time a yield is called. You should yield the headers first.
 
 ```javascript
 const myApp = {
   *streamingGreeting() {
+    yield {
+      "Content-Type": "text/plain",
+      "Transfer-Encoding": "chunked"
+    };
     yield "HELLO";
     yield "WORLD";
     return "!!!";
@@ -400,6 +404,10 @@ You can also use asynchronous generator functions.
 ```javascript
 const myApp = {
   async *streamingGreeting() {
+    yield {
+      "Content-Type": "text/plain",
+      "Transfer-Encoding": "chunked"
+    };
     yield await Promise.resolve("HELLO");
     yield await Promise.resolve("WORLD");
     return "!!!";

@@ -75,18 +75,26 @@ const routes = {
     };
   },
   *generatorFunction(x, y) {
-    yield 1;
-    yield 2;
-    yield 3;
+    yield {
+      "Content-Type": "text/plain",
+      "Transfer-Encoding": "chunked"
+    };
+    yield "HELLO_";
+    yield "WORLD_";
+    yield "THIS_";
     yield x;
-    return y * 2;
+    return y;
   },
   async *asyncGeneratorFunction(x, y) {
-    yield 1;
-    yield 2;
-    yield 3;
+    yield {
+      "Content-Type": "text/plain",
+      "Transfer-Encoding": "chunked"
+    };
+    yield await "HELLO_";
+    yield "WORLD_";
+    yield "THIS_";
     yield x;
-    return y * 2;
+    return y;
   },
   funcWithContext(x, y, context) {
     if (!context.isContext()) {
@@ -319,13 +327,34 @@ describe("NSOAP Express", () => {
 
   it("Streams from a generator function", async () => {
     const app = makeApp({ streamResponse: true });
-    const resp = await request(app).get("/generatorFunction(10,20)");
-    resp.text.should.equal("1231040");
+    const resp = await request(app).get("/generatorFunction(WORKS_,WELL)");
+    resp.text.should.equal("HELLO_WORLD_THIS_WORKS_WELL");
   });
 
   it("Streams from an async generator function", async () => {
     const app = makeApp({ streamResponse: true });
-    const resp = await request(app).get("/asyncGeneratorFunction(10,20)");
-    resp.text.should.equal("1231040");
+    const resp = await request(app).get("/asyncGeneratorFunction(WORKS_,WELL)");
+    resp.text.should.equal("HELLO_WORLD_THIS_WORKS_WELL");
+  });
+
+  it("Streams with Stream Response Handler", async () => {
+    function onResponseStreamHeader(req, res) {
+      return val => res.writeHead(200, val);
+    }
+
+    function onResponseStream(req, res) {
+      return val => res.write(val);
+    }
+
+    function onResponseStreamEnd(req, res) {
+      return val => res.end(val);
+    }
+    const app = makeApp({
+      onResponseStreamHeader,
+      onResponseStream,
+      onResponseStreamEnd
+    });
+    const resp = await request(app).get("/generatorFunction(WORKS_,WELL)");
+    resp.text.should.equal("HELLO_WORLD_THIS_WORKS_WELL");
   });
 });

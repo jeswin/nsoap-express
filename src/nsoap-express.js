@@ -34,6 +34,54 @@ function parseCookies(cookies) {
   return parseDict(cookies);
 }
 
+function createResponseHandler(options, { req, res, next }) {
+  return options.onResponseStream
+    ? {
+        onRoutingError(result) {
+          options.onResponseStreamError(req, res, next)(
+            new Error("Server error.")
+          );
+        },
+        onResult(result) {
+          options.onResponseStreamEnd(req, res, next)(result);
+        },
+        onError(error) {
+          options.onResponseStreamError(req, res, next)(error);
+        }
+      }
+    : options.streamResponse
+      ? {
+          onRoutingError(result) {
+            next(new Error("Server error."));
+          },
+          onResult(result) {
+            res.end(result);
+          },
+          onError(error) {
+            next(error);
+          }
+        }
+      : {
+          onRoutingError(result) {
+            if (result.type === "NOT_FOUND") {
+              res.status(404).send("Not found.");
+            } else {
+              res.status(500).send("Server error.");
+            }
+          },
+          onResult(result) {
+            if (typeof result === "string" && !options.alwaysUseJSON) {
+              res.status(200).send(result);
+            } else {
+              res.status(200).json(result);
+            }
+          },
+          onError(error) {
+            res.status(400).send(error);
+          }
+        };
+}
+
 export default function(app, options = {}) {
   const _urlPrefix = options.urlPrefix || "/";
   const urlPrefix = _urlPrefix.endsWith("/") ? _urlPrefix : `${urlPrefix}/`;
@@ -64,22 +112,28 @@ export default function(app, options = {}) {
         ? createContext({ req, res, isContext: () => true })
         : [];
 
-      let beganStreaming = false;
-      const streamResponseHandler = options.streamResponse
+      let isHeader = true;
+      const streamResponseHandler = options.onResponseStream
         ? val => {
-            if (!beganStreaming) {
-              const streamHeaders = options.getStreamHeaders
-                ? options.getStreamHeaders(req, res)(val)
-                : {
-                    "Content-Type": "text/plain",
-                    "Transfer-Encoding": "chunked"
-                  };
-              res.writeHead(200, streamHeaders);
+            if (isHeader) {
+              options.onResponseStreamHeader(req, res, next)(val, isHeader);
+              isHeader = false;
+            } else {
+              options.onResponseStream(req, res, next)(val, isHeader);
             }
-            beganStreaming = true;
-            res.write(val.toString());
           }
-        : undefined;
+        : options.streamResponse
+          ? val => {
+              if (isHeader) {
+                res.writeHead(200, val);
+                isHeader = false;
+              } else {
+                res.write(val);
+              }
+            }
+          : undefined;
+
+      const handler = createResponseHandler(options, { req, res, next });
 
       nsoap(app, strippedPath, dicts, {
         index: options.index || "index",
@@ -88,35 +142,19 @@ export default function(app, options = {}) {
         onNextValue: streamResponseHandler
       }).then(
         result => {
-          if (result instanceof RoutingError) {
-            if (result.type === "NOT_FOUND") {
-              res.status(404).send("Not found.");
-            } else {
-              res.status(500).send("Server error");
-            }
-          } else if (typeof result === "function") {
+          if (typeof result === "function") {
             result.apply(undefined, [req, res]);
+          } else if (result instanceof RoutingError) {
+            handler.onRoutingError(result);
           } else {
             if (!context.handled) {
-              if (!options.streamResponse) {
-                if (typeof result === "string" && !options.alwaysUseJSON) {
-                  res.status(200).send(result);
-                } else {
-                  res.status(200).json(result);
-                }
-              } else {
-                res.end(result.toString());
-              }
+              handler.onResult(result);
             }
           }
         },
         error => {
           if (!context.handled) {
-            if (options.streamResponse) {
-              next(error);
-            } else {
-              res.status(400).send(error);
-            }
+            handler.onError(error);
           }
         }
       );
