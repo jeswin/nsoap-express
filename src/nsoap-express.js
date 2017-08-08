@@ -34,7 +34,7 @@ function parseCookies(cookies) {
   return parseDict(cookies);
 }
 
-function createResponseStreamHandler(options, { req, res, next }) {
+function createStreamingCompletionHandler(options, { req, res, next }) {
   return options.onResponseStream
     ? {
         onRoutingError(result) {
@@ -95,7 +95,7 @@ export default function(app, options = {}) {
         : [];
 
       let isStreaming = false;
-      const streamResponseHandler = options.onResponseStream
+      const streamHandler = options.onResponseStream
         ? val => {
             if (!isStreaming) {
               options.onResponseStreamHeader(req, res, next)(val);
@@ -115,20 +115,20 @@ export default function(app, options = {}) {
             }
           : undefined;
 
-      const responseStreamHandler = createResponseStreamHandler(options, { req, res, next });
+      const streamingCompletionHandler = createStreamingCompletionHandler(options, { req, res, next });
 
       nsoap(app, strippedPath, dicts, {
         index: options.index || "index",
         prependArgs: options.contextAsFirstArgument,
         args: [context],
-        onNextValue: streamResponseHandler
+        onNextValue: streamHandler
       }).then(
         result => {
           if (typeof result === "function") {
             result.apply(undefined, [req, res]);
           } else if (result instanceof RoutingError) {
             if (isStreaming) {
-              responseStreamHandler.onRoutingError(result);
+              streamingCompletionHandler.onRoutingError(result);
             } else {
               if (result.type === "NOT_FOUND") {
                 res.status(404).send("Not found.");
@@ -139,7 +139,7 @@ export default function(app, options = {}) {
           } else {
             if (!context.handled) {
               if (isStreaming) {
-                responseStreamHandler.onResult(result);
+                streamingCompletionHandler.onResult(result);
               } else {
                 if (typeof result === "string" && !options.alwaysUseJSON) {
                   res.status(200).send(result);
@@ -153,7 +153,7 @@ export default function(app, options = {}) {
         error => {
           if (!context.handled) {
             if (isStreaming) {
-              responseStreamHandler.onError(error);
+              streamingCompletionHandler.onError(error);
             } else {
               res.status(400).send(error);
             }
