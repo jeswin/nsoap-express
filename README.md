@@ -383,7 +383,8 @@ const myApp = {
 
 ## Streaming responses with Generator Functions
 
-Response chunks are sent every time a yield is called. You should yield the headers first.
+Enable this by setting streamResponse in options. Response chunks are sent every time a yield is called. 
+The headers need to be yielded first.
 
 ```javascript
 const myApp = {
@@ -397,6 +398,10 @@ const myApp = {
     return "!!!";
   }
 }
+
+//Set the streamResponse boolean
+const options = { streamResponse: true }
+app.use(nsoap(myApp, options));
 ```
 
 You can also use asynchronous generator functions.
@@ -413,6 +418,10 @@ const myApp = {
     return "!!!";
   }
 }
+
+//Set the streamResponse boolean
+const options = { streamResponse: true }
+app.use(nsoap(myApp, options));
 ```
 
 ## Advanced Options
