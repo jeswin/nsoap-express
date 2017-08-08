@@ -68,22 +68,20 @@ curl "http://www.example.com/addTwoNumbers(x,y)?x=10&y=20"
 curl "http://www.example.com/search(x)?x=thomas"
 ```
 
-If the argument is a string and it contains spaces or other characters, you will need to quote and encode them. They can only be passed via parameter variables.
+Parameters may be passed via Querystring, Body, Headers or Cookies.
+
+```bash
+# Using POST
+curl -H "Content-Type: application/json" -X POST -d '{"x":10,"y":20}' "http://www.example.com/addTwoNumbers(x,y)"
+```
+
+If the argument is passed via the Querystring and it contains spaces or other characters, you will need to quote and encode them. They can only be passed via parameter variables. Hence we recommend using querystrings only for numbers, booleans and simple strings.
 
 ```bash
 # Have spaces? Must quote and encode.
 # %22 is double quote, %20 is space
 # x = "thomas jacob"
 curl "http://www.example.com/search(x)?x=%22thomas%20jacob%22"
-```
-
-You may pass full JSON objects via parameter variables.
-
-```bash
-# x = { "title": "bring milk", "assignee": "me" })
-# encodeURIComponent(x)
-curl "http://www.example.com/findTodo(x)?x=
-%7B%20%22title%22%3A%20%22bring%20milk%22%2C%20%22assignee%22%3A%20%22me%22%20%7D"
 ```
 
 ## Returning a response
