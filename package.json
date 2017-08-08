@@ -10,7 +10,7 @@
   "license": "MIT",
   "dependencies": {
     "babel-polyfill": "*",
-    "nsoap": "^0.0.7"
+    "nsoap": "^0.0.9"
   },
   "devDependencies": {
     "babel-loader": "*",

@@ -22,7 +22,7 @@ const routes = {
   divide(x, y) {
     return x / y;
   },
-  tripletAdder(x,y,z) {
+  tripletAdder(x, y, z) {
     return x + y + z;
   },
   namespace: {
@@ -73,6 +73,20 @@ const routes = {
         return x + y;
       }
     };
+  },
+  *generatorFunction(x, y) {
+    yield 1;
+    yield 2;
+    yield 3;
+    yield x;
+    return y * 2;
+  },
+  async *asyncGeneratorFunction(x, y) {
+    yield 1;
+    yield 2;
+    yield 3;
+    yield x;
+    return y * 2;
   },
   funcWithContext(x, y, context) {
     if (!context.isContext()) {
@@ -194,7 +208,7 @@ describe("NSOAP Express", () => {
     const app = makeApp();
     const resp = await request(app)
       .post("/binary(x,y)")
-      .set('Cookie', ['x=10', 'y=20'])
+      .set("Cookie", ["x=10", "y=20"]);
     resp.body.should.equal(30);
   });
 
@@ -203,8 +217,8 @@ describe("NSOAP Express", () => {
     const resp = await request(app)
       .post("/tripletAdder(x,y,z)?x=2&y=20")
       .set("x", 1)
-      .set('Cookie', ['x=4', 'y=40', 'z=400'])
-      .send({ x: 3, y: 30, z: 300 })
+      .set("Cookie", ["x=4", "y=40", "z=400"])
+      .send({ x: 3, y: 30, z: 300 });
     resp.body.should.equal(321);
   });
 
@@ -301,5 +315,17 @@ describe("NSOAP Express", () => {
     const resp = await request(app).get("/nonExistantFunction(10,20)");
     resp.status.should.equal(404);
     resp.text.should.equal("Not found.");
+  });
+
+  it("Streams from a generator function", async () => {
+    const app = makeApp({ streamResponse: true });
+    const resp = await request(app).get("/generatorFunction(10,20)");
+    resp.text.should.equal("1231040");
+  });
+
+  it("Streams from an async generator function", async () => {
+    const app = makeApp({ streamResponse: true });
+    const resp = await request(app).get("/asyncGeneratorFunction(10,20)");
+    resp.text.should.equal("1231040");
   });
 });

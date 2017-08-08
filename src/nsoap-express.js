@@ -38,7 +38,7 @@ export default function(app, options = {}) {
   const _urlPrefix = options.urlPrefix || "/";
   const urlPrefix = _urlPrefix.endsWith("/") ? _urlPrefix : `${urlPrefix}/`;
 
-  return (req, res) => {
+  return (req, res, next) => {
     const { path, url, query, headers } = req;
 
     if (path.startsWith(urlPrefix)) {
@@ -64,10 +64,28 @@ export default function(app, options = {}) {
         ? createContext({ req, res, isContext: () => true })
         : [];
 
+      let beganStreaming = false;
+      const streamResponseHandler = options.streamResponse
+        ? val => {
+            if (!beganStreaming) {
+              const streamHeaders = options.getStreamHeaders
+                ? options.getStreamHeaders(req, res)(val)
+                : {
+                    "Content-Type": "text/plain",
+                    "Transfer-Encoding": "chunked"
+                  };
+              res.writeHead(200, streamHeaders);
+            }
+            beganStreaming = true;
+            res.write(val.toString());
+          }
+        : undefined;
+
       nsoap(app, strippedPath, dicts, {
         index: options.index || "index",
         prependArgs: options.contextAsFirstArgument,
-        args: [context]
+        args: [context],
+        onNextValue: streamResponseHandler
       }).then(
         result => {
           if (result instanceof RoutingError) {
@@ -80,17 +98,25 @@ export default function(app, options = {}) {
             result.apply(undefined, [req, res]);
           } else {
             if (!context.handled) {
-              if (typeof result === "string" && !options.alwaysUseJSON) {
-                res.status(200).send(result);
+              if (!options.streamResponse) {
+                if (typeof result === "string" && !options.alwaysUseJSON) {
+                  res.status(200).send(result);
+                } else {
+                  res.status(200).json(result);
+                }
               } else {
-                res.status(200).json(result);
+                res.end(result.toString());
               }
             }
           }
         },
         error => {
           if (!context.handled) {
-            res.status(400).send(error);
+            if (options.streamResponse) {
+              next(error);
+            } else {
+              res.status(400).send(error);
+            }
           }
         }
       );
