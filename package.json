@@ -9,12 +9,12 @@
   },
   "license": "MIT",
   "dependencies": {
-    "nsoap": "^0.0.10"
+    "nsoap": "^0.0.12"
   },
   "devDependencies": {
     "babel-loader": "*",
-    "babel-polyfill": "^6.23.0",
     "babel-plugin-transform-async-to-generator": "*",
+    "babel-polyfill": "^6.23.0",
     "babel-preset-es2015-without-regenerator": "^1.0.1",
     "babel-preset-es2016": "^6.24.1",
     "babel-preset-es2017": "^6.24.1",
