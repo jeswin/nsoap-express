@@ -223,6 +223,12 @@ describe("NSOAP Express", () => {
     resp.body.should.equal(30);
   });
 
+  it("Can use slash instead of dot", async () => {
+    const app = makeApp({ useSlash: true });
+    const resp = await request(app).get("/nested/namespace/binary(10,20)");
+    resp.body.should.equal(30);
+  });
+
   it("Accepts stringified JSON arguments in querystring", async () => {
     const app = makeApp();
     const obj = encodeURIComponent(JSON.stringify({ x: 10 }));

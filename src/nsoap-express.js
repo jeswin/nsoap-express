@@ -121,7 +121,8 @@ export default function(app, options = {}) {
         index: options.index || "index",
         prependArgs: options.contextAsFirstArgument,
         args: [context],
-        onNextValue: streamHandler
+        onNextValue: streamHandler,
+        useSlash: !!options.useSlash
       }).then(
         result => {
           if (typeof result === "function") {

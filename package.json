@@ -1,6 +1,6 @@
 {
   "name": "nsoap-express",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "author": "Jeswin Kumar<jeswinpk@agilehead.com>",
   "main": "dist/nsoap-express",
   "scripts": {
@@ -9,7 +9,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "nsoap": "^0.0.12"
+    "nsoap": "^0.0.15"
   },
   "devDependencies": {
     "babel-loader": "*",
