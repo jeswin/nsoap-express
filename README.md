@@ -9,7 +9,7 @@ Choose your framework
 <ul class="selector">
   <li><a href="https://github.com/nsoap-official/nsoap-express">Express JS</a></li>
   <li><a href="https://github.com/nsoap-official/nsoap-koa">Koa JS</a></li>
-  <li>React JS (Coming soon...)</li>
+  <li><a href="https://github.com/nsoap-official/sailboat">React JS</a></li>
 </ul>
 
 ## Installation
